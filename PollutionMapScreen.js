@@ -2,37 +2,37 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const HomeScreen = ({ navigation }) => {
+const PollutionMapScreen = ({ navigation }) => {
   return (
     <ImageBackground
-      source={{
-        uri: "https://source.unsplash.com/featured/?technology,earth", // Teknoloji & Dünya temalı arka plan
-      }}
+      source={{ uri: "https://source.unsplash.com/featured/?city,pollution" }} // Kirlilik temalı arka plan
       style={styles.background}
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Ionicons name="earth" size={80} color="#fff" style={styles.icon} />
-          <Text style={styles.title}>Harita Mühendisliği</Text>
+          <Ionicons name="cloudy-outline" size={80} color="#fff" style={styles.icon} /> {/* Kirlilik simgesi */}
+          <Text style={styles.title}>Kirlilik Haritası</Text>
 
-          {/* Kirlilik Haritası butonu */}
+          <Text style={styles.description}>
+            Kirlilik seviyelerini harita üzerinde görüntüleyin ve bölgenizdeki çevresel durumu öğrenin.
+          </Text>
+
+          {/* Harita yüklenmesi ve kirlilik verileri buraya eklenebilir */}
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("PollutionMapScreen")} // PollutionMapScreen'e yönlendirme
+            onPress={() => alert("Harita Yükleniyor...")} // Burada gerçek harita yükleme fonksiyonu olmalı
           >
-            <Ionicons name="cloudy-outline" size={24} color="#fff" />
-            <Text style={styles.buttonText}>Kirlilik Haritası</Text>
+            <Ionicons name="map-outline" size={24} color="#fff" />
+            <Text style={styles.buttonText}>Haritayı Görüntüle</Text>
           </TouchableOpacity>
 
-          {/* Chatbot butonu */}
+          {/* Ana ekranına dönüş */}
           <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("ChatbotScreen")} // ChatbotScreen'e yönlendirme
+            style={styles.linkButton}
+            onPress={() => navigation.goBack()}
           >
-            <Ionicons name="chatbubble-ellipses-outline" size={24} color="#fff" />
-            <Text style={styles.buttonText}>Chatbot</Text>
+            <Text style={styles.linkButtonText}>Ana Ekrana Dön</Text>
           </TouchableOpacity>
-
         </View>
       </View>
     </ImageBackground>
@@ -66,16 +66,23 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 30,
+    marginBottom: 20,
     textAlign: "center",
+  },
+  description: {
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 20,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
   button: {
     width: "100%",
-    backgroundColor: "#28a745", // Yeşil tonları
+    backgroundColor: "#007bff", // Mavi tonları
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 20,
     flexDirection: "row",
     justifyContent: "center",
   },
@@ -85,6 +92,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
   },
+  linkButton: {
+    marginTop: 20,
+  },
+  linkButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    textDecorationLine: "underline",
+  },
 });
 
-export default HomeScreen;
+export default PollutionMapScreen;
