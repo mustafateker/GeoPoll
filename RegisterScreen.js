@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const RegisterScreen = () => {
+const RegisterScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +23,7 @@ const RegisterScreen = () => {
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Ionicons name="person-add" size={80} color="#fff" style={styles.icon} /> {/* Kullanıcı ekleme simgesi */}
+          <Ionicons name="person-add" size={80} color="#fff" style={styles.icon} />
           <Text style={styles.title}>Harita Mühendisliği Kayıt</Text>
 
           <TextInput
@@ -67,7 +67,8 @@ const RegisterScreen = () => {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Hesabınız var mı?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}> {/* Giriş yapmaya yönlendir */}
+
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}> 
               <Text style={styles.signInLink}>Giriş Yap</Text>
             </TouchableOpacity>
           </View>

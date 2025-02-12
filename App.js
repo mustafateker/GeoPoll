@@ -5,6 +5,8 @@ import HomeScreen from "./HomeScreen"; // HomeScreen'iniz
 import LoginScreen from "./LoginScreen"; // LoginScreen'iniz
 import PollutionMapScreen from "./PollutionMapScreen"; // PollutionMapScreen'iniz
 import RegisterScreen from "./RegisterScreen"; // RegisterScreen'iniz
+import ChatbotScreen from "./ChatbotScreen"; // RegisterScreen'iniz
+
 
 // Stack Navigator'ı oluştur
 const Stack = createStackNavigator();
@@ -21,11 +23,12 @@ export default function App() {
         
         {/* PollutionMap ekranı */}
         <Stack.Screen name="PollutionMapScreen" component={PollutionMapScreen} options={{ headerShown: false }} />
-      
+        <Stack.Screen name="ChatbotScreen" component={ChatbotScreen} options={{ headerShown: false }} />
         
         {/* Register ekranı */}
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
+      
     </NavigationContainer>
   );
 }
