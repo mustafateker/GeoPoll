@@ -1,150 +1,203 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "./firebase";
 import { Ionicons } from "@expo/vector-icons";
 
 const RegisterScreen = ({ navigation }) => {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    if (!username || !email || !password || !phone) {
+  const handleRegister = async () => {
+    if (!email || !password || !confirmPassword) {
       Alert.alert("Hata", "Lütfen tüm alanları doldurun.");
-    } else {
-      Alert.alert("Başarılı", "Kayıt başarılı!");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Hata", "Parolalar eşleşmiyor.");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert("Hata", "Parola en az 6 karakter olmalıdır.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Kayıt işlemi başlatılıyor...');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Kullanıcı başarıyla oluşturuldu:', userCredential.user.email);
+      Alert.alert(
+        "Başarılı",
+        "Hesabınız başarıyla oluşturuldu!",
+        [
+          {
+            text: "Giriş Yap",
+            onPress: () => navigation.replace("Login")
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Kayıt hatası:', error.code, error.message);
+      let errorMessage = "Kayıt sırasında bir hata oluştu.";
+
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          errorMessage = "Bu e-posta adresi zaten kullanımda.";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "Geçerli bir e-posta adresi giriniz.";
+          break;
+        case 'auth/operation-not-allowed':
+          errorMessage = "E-posta/şifre girişi etkin değil.";
+          break;
+        case 'auth/weak-password':
+          errorMessage = "Daha güçlü bir parola kullanın.";
+          break;
+        default:
+          errorMessage = `Kayıt işlemi başarısız oldu: ${error.message}`;
+      }
+
+      Alert.alert("Hata", errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <ImageBackground
-      source={{ uri: "https://source.unsplash.com/featured/?map,earth,green" }} // Doğa & Harita temalı arka plan
-      style={styles.background}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <Ionicons name="person-add" size={80} color="#fff" style={styles.icon} />
-          <Text style={styles.title}>Harita Mühendisliği Kayıt</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Kullanıcı Adı"
-            placeholderTextColor="#ddd"
-            value={username}
-            onChangeText={setUsername}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="E-posta"
-            placeholderTextColor="#ddd"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Şifre"
-            placeholderTextColor="#ddd"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Telefon Numarası"
-            placeholderTextColor="#ddd"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-          />
-
-          <TouchableOpacity onPress={handleRegister} style={styles.button}>
-            <Text style={styles.buttonText}>Kayıt Ol</Text>
-          </TouchableOpacity>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Hesabınız var mı?</Text>
-
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.signInLink}>Giriş Yap</Text>
-            </TouchableOpacity>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <View style={styles.iconContainer}>
+          <Ionicons name="map" size={60} color="#28a745" />
         </View>
+        <Text style={styles.title}>GeoPoll</Text>
       </View>
-    </ImageBackground>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="E-posta"
+          placeholderTextColor="#666"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Parola"
+          placeholderTextColor="#666"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Parolayı Tekrar Girin"
+          placeholderTextColor="#666"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+        />
+
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.buttonText}>Kayıt Ol</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => navigation.navigate("Login")}
+      >
+        <Text style={styles.loginText}>Zaten hesabınız var mı? <Text style={styles.loginLink}>Giriş Yapın</Text></Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Koyu geçiş rengi
-    width: "100%",
-    height: "100%",
-  },
   container: {
-    width: "85%",
-    backgroundColor: "rgba(255, 255, 255, 0.3)", // Yarı şeffaf beyaz arka plan
-    padding: 30,
-    borderRadius: 20,
-    alignItems: "center",
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 20,
+    justifyContent: 'center',
   },
-  icon: {
-    marginBottom: 20,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 50,
+  },
+  iconContainer: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 30,
-    textAlign: "center",
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#28a745',
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 20,
   },
   input: {
-    width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    padding: 12,
+    borderWidth: 1,
+    borderColor: '#28a745',
+    borderRadius: 8,
+    padding: 15,
     marginBottom: 15,
-    borderRadius: 10,
-    color: "#fff",
     fontSize: 16,
   },
   button: {
-    width: "100%",
-    backgroundColor: "#28a745", // Yeşil tonları
+    backgroundColor: '#28a745',
     padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginBottom: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#93cb9f',
   },
   buttonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+  loginButton: {
+    alignItems: 'center',
   },
-  footerText: {
-    color: "#fff",
-    fontSize: 14,
+  loginText: {
+    fontSize: 16,
+    color: '#666',
   },
-  signInLink: {
-    color: "#28a745", // Yeşil renkli bağlantı
-    fontSize: 14,
-    fontWeight: "bold",
-    marginLeft: 5,
+  loginLink: {
+    color: '#28a745',
+    fontWeight: 'bold',
   },
 });
 

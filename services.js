@@ -1,17 +1,11 @@
-import {
-    WEATHER_API_KEY,
-    WEATHER_API_URL
-} from './config';
-
 const predefinedResponses = {
     merhaba: "Merhaba! Size nasıl yardımcı olabilirim?",
-    nasilsin: "İyiyim, teşekkür ederim. Siz nasılsınız?",
+    nasilsin: "İyiyim, teşekkür ederim. Size nasıl yardımcı olabilirim?",
     neYapabilirsin: "Size konum ve hava durumu hakkında bilgi verebilirim. Başka ne öğrenmek istersiniz?",
     tesekkur: "Rica ederim! Başka bir şey sormak ister misiniz?",
     iyiAksamlar: "İyi akşamlar, iyi geceler!",
     iyiGunler: "Size de iyi günler!",
     gunaydın: "Günaydın! Nasıl yardımcı olabilirim?",
-    otel: "ÖZkaymak Falez Hotel, Konyaaltı sahilinde bulunuyor. Deniz manzaralı odalarımız ve modern imkanlarımızla hizmetinizdeyiz.",
     default: "Üzgünüm, tam anlayamadım. Konum veya hava durumu hakkında bilgi almak ister misiniz?"
 };
 
@@ -41,9 +35,6 @@ export const getOpenAIResponse = async (message) => {
         if (lowerMessage.includes('günaydın')) {
             return predefinedResponses.gunaydın;
         }
-        if (lowerMessage.includes('otel') || lowerMessage.includes('tesis')) {
-            return predefinedResponses.otel;
-        }
 
         // Eğer özel bir eşleşme bulunamazsa
         return predefinedResponses.default;
@@ -55,8 +46,9 @@ export const getOpenAIResponse = async (message) => {
 
 export const getWeatherData = async (latitude, longitude) => {
     try {
+        const API_KEY = '33c8e4cb3fa6c93648cef3608ad3380c'; // OpenWeather API Key
         const response = await fetch(
-            `${WEATHER_API_URL}?lat=${latitude}&lon=${longitude}&appid=${WEATHER_API_KEY}&units=metric&lang=tr`
+            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=metric&lang=tr`
         );
 
         if (!response.ok) {

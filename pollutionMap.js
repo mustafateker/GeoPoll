@@ -4,11 +4,6 @@ import MapView, { Marker, Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from "@expo/vector-icons";
 
-// Android Emülatör için: 10.0.2.2
-// iOS Simulator için: localhost
-// Fiziksel cihaz için: Bilgisayarınızın IP adresi (örn: 192.168.1.X)
-const API_BASE_URL = 'http://10.0.2.2:3000';
-
 const PollutionMap = () => {
   const [location, setLocation] = useState(null);
   const [hotels, setHotels] = useState([]);
@@ -34,25 +29,13 @@ const PollutionMap = () => {
 
   const loadData = async () => {
     try {
-      const hotelsResponse = await fetch(`${API_BASE_URL}/api/hotels`);
-      const hotelsData = await hotelsResponse.json();
-      // Koordinatları number'a çevir
-      const processedHotels = hotelsData.map(hotel => ({
-        ...hotel,
-        latitude: parseFloat(hotel.latitude),
-        longitude: parseFloat(hotel.longitude)
-      }));
-      setHotels(processedHotels);
+      const hotelsResponse = await fetch('http://localhost:3000/api/hotels');
+      const hotels = await hotelsResponse.json();
+      setHotels(hotels);
 
-      const airQualityResponse = await fetch(`${API_BASE_URL}/api/air-quality`);
-      const airQualityData = await airQualityResponse.json();
-      // Koordinatları number'a çevir
-      const processedAirQuality = airQualityData.map(point => ({
-        ...point,
-        latitude: parseFloat(point.latitude),
-        longitude: parseFloat(point.longitude)
-      }));
-      setAirQualityPoints(processedAirQuality);
+      const airQualityResponse = await fetch('http://localhost:3000/api/air-quality');
+      const airQualityPoints = await airQualityResponse.json();
+      setAirQualityPoints(airQualityPoints);
     } catch (error) {
       console.error('Error loading data:', error);
       Alert.alert('Error loading data');
@@ -66,17 +49,9 @@ const PollutionMap = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/best-hotel?lat=${selectedLocation.latitude}&lng=${selectedLocation.longitude}&radius=${radius}`);
-      const hotelData = await response.json();
-      // Best hotel koordinatlarını number'a çevir
-      if (hotelData) {
-        const processedHotel = {
-          ...hotelData,
-          latitude: parseFloat(hotelData.latitude),
-          longitude: parseFloat(hotelData.longitude)
-        };
-        setBestHotel(processedHotel);
-      }
+      const response = await fetch(`http://localhost:3000/api/best-hotel?lat=${selectedLocation.latitude}&lng=${selectedLocation.longitude}&radius=${radius}`);
+      const bestHotel = await response.json();
+      setBestHotel(bestHotel);
     } catch (error) {
       console.error('Error finding best hotel:', error);
       Alert.alert('Error finding best hotel');
@@ -158,7 +133,7 @@ const PollutionMap = () => {
               <TextInput
                 style={styles.input}
                 value={String(radius)}
-                onChangeText={(text) => setRadius(parseFloat(text) || 0)}
+                onChangeText={setRadius}
                 keyboardType="numeric"
               />
               <Text style={styles.unit}>km</Text>

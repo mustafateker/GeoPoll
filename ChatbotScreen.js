@@ -162,7 +162,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     backgroundColor: '#F5F5F5',
-    position: 'relative',
   },
   safeArea: {
     height: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight,
@@ -179,7 +178,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    marginTop: Platform.OS === 'ios' ? 0 : 0,
   },
   headerContent: {
     flexDirection: 'row',
@@ -216,11 +214,11 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 20,
     marginVertical: 5,
-    elevation: 2,
+    elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   botBubble: {
     backgroundColor: '#FFF',

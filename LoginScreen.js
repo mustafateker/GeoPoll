@@ -1,142 +1,160 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "./firebase";
 import { Ionicons } from "@expo/vector-icons";
 
-const LoginScreen = ({ navigation }) => { // navigation prop'u al
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Hata", "Lütfen tüm alanları doldurun.");
-    } else {
-      // Giriş işlemi başarılı olduğunda HomeScreen'e yönlendir
-      navigation.navigate("Home");
+      Alert.alert("Hata", "Lütfen e-posta ve parolanızı girin.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await signInWithEmailAndPassword(auth, email, password);
+      navigation.replace("Home");
+    } catch (error) {
+      let errorMessage = "Giriş sırasında bir hata oluştu.";
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "Bu e-posta adresiyle kayıtlı kullanıcı bulunamadı.";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage = "Hatalı parola.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Geçersiz e-posta adresi.";
+      }
+      Alert.alert("Hata", errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <ImageBackground
-      source={{ uri: "https://source.unsplash.com/featured/?map,earth,green" }} // Yeşil harita temalı arka plan
-      style={styles.background}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <Ionicons name="map" size={80} color="#fff" style={styles.icon} /> {/* Harita simgesi */}
-          <Text style={styles.title}>Harita Mühendisliği Giriş</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="E-posta"
-            placeholderTextColor="#ddd"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Şifre"
-            secureTextEntry
-            placeholderTextColor="#ddd"
-            value={password}
-            onChangeText={setPassword}
-          />
-
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Giriş Yap</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.linkButton}>
-            <Text style={styles.linkButtonText}>Şifremi Unuttum?</Text>
-          </TouchableOpacity>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Henüz hesabınız yok mu?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Register")}> {/* Kayıt Ol butonuna basıldığında RegisterScreen'e git */}
-              <Text style={styles.signUpLink}>Kayıt Ol</Text>
-            </TouchableOpacity>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <View style={styles.iconContainer}>
+          <Ionicons name="map" size={60} color="#28a745" />
         </View>
+        <Text style={styles.title}>GeoPoll</Text>
       </View>
-    </ImageBackground>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="E-posta"
+          placeholderTextColor="#666"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Parola"
+          placeholderTextColor="#666"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.buttonText}>Giriş Yap</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={styles.registerButton}
+        onPress={() => navigation.navigate("Register")}
+      >
+        <Text style={styles.registerText}>Hesabınız yok mu? <Text style={styles.registerLink}>Kayıt Olun</Text></Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",  // Koyu geçiş rengi, içerikleri daha belirgin yapar
-    width: "100%",
-    height: "100%",
-  },
   container: {
-    width: "85%",
-    backgroundColor: "rgba(255, 255, 255, 0.3)",  // Yarı şeffaf beyaz arka plan
-    padding: 30,
-    borderRadius: 20,
-    alignItems: "center",
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 20,
+    justifyContent: 'center',
   },
-  icon: {
-    marginBottom: 20,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 50,
+  },
+  iconContainer: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 30,
-    textAlign: "center",
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#28a745',
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 20,
   },
   input: {
-    width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    padding: 12,
+    borderWidth: 1,
+    borderColor: '#28a745',
+    borderRadius: 8,
+    padding: 15,
     marginBottom: 15,
-    borderRadius: 10,
-    color: "#fff",
     fontSize: 16,
   },
   button: {
-    width: "100%",
-    backgroundColor: "#28a745",  // Yeşil tonları
+    backgroundColor: '#28a745',
     padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginBottom: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#93cb9f',
   },
   buttonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
-  linkButton: {
-    marginBottom: 15,
+  registerButton: {
+    alignItems: 'center',
   },
-  linkButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    textDecorationLine: "underline",
+  registerText: {
+    fontSize: 16,
+    color: '#666',
   },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  footerText: {
-    color: "#fff",
-    fontSize: 14,
-  },
-  signUpLink: {
-    color: "#28a745",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginLeft: 5,
+  registerLink: {
+    color: '#28a745',
+    fontWeight: 'bold',
   },
 });
 
