@@ -20,7 +20,7 @@ const PollutionMapScreen = ({ navigation }) => {
           {/* Harita yüklenmesi ve kirlilik verileri buraya eklenebilir */}
           <TouchableOpacity
             style={styles.button}
-            onPress={() => alert("Harita Yükleniyor...")} // Burada gerçek harita yükleme fonksiyonu olmalı
+            onPress={() => navigation.navigate('PollutionMap')} // PollutionMap ekranına yönlendirme
           >
             <Ionicons name="map-outline" size={24} color="#fff" />
             <Text style={styles.buttonText}>Haritayı Görüntüle</Text>

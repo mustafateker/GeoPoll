@@ -6,7 +6,7 @@ import LoginScreen from "./LoginScreen"; // LoginScreen'iniz
 import PollutionMapScreen from "./PollutionMapScreen"; // PollutionMapScreen'iniz
 import RegisterScreen from "./RegisterScreen"; // RegisterScreen'iniz
 import ChatbotScreen from "./ChatbotScreen"; // RegisterScreen'iniz
-
+import PollutionMap from './pollutionMap'; // PollutionMap'iniz
 
 // Stack Navigator'ı oluştur
 const Stack = createStackNavigator();
@@ -27,6 +27,7 @@ export default function App() {
         
         {/* Register ekranı */}
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PollutionMap" component={PollutionMap} options={{ title: 'Harita' }} />
       </Stack.Navigator>
       
     </NavigationContainer>
