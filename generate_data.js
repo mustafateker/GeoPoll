@@ -4,7 +4,7 @@ const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'antalya_air_quality',
-    password: '12345',  // Kurulum sırasında belirlediğiniz şifreyi buraya yazın
+    password: '276288380Bh.',  // Kurulum sırasında belirlediğiniz şifreyi buraya yazın
     port: 5432,
 });
 
@@ -82,7 +82,7 @@ const hotels = [
 hotels.forEach(hotel => {
     // Bölgeye göre koordinat aralığı belirle
     let lat, lng;
-    
+
     if (hotel.address.includes("Lara")) {
         // Lara bölgesi
         lat = 36.85 + (Math.random() * 0.05);
@@ -100,7 +100,7 @@ hotels.forEach(hotel => {
         lat = 36.85 + (Math.random() * 0.1);
         lng = 30.70 + (Math.random() * 0.1);
     }
-    
+
     hotel.latitude = lat;
     hotel.longitude = lng;
 });

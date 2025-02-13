@@ -68,7 +68,7 @@ const RegisterScreen = ({ navigation }) => {
           <View style={styles.footer}>
             <Text style={styles.footerText}>Hesabınız var mı?</Text>
 
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}> 
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
               <Text style={styles.signInLink}>Giriş Yap</Text>
             </TouchableOpacity>
           </View>

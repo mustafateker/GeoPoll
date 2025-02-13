@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Button, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { Ionicons } from "@expo/vector-icons";
+
+// Android Emülatör için: 10.0.2.2
+// iOS Simulator için: localhost
+// Fiziksel cihaz için: Bilgisayarınızın IP adresi (örn: 192.168.1.X)
+const API_BASE_URL = 'http://10.0.2.2:3000';
 
 const PollutionMap = () => {
   const [location, setLocation] = useState(null);
@@ -28,13 +34,25 @@ const PollutionMap = () => {
 
   const loadData = async () => {
     try {
-      const hotelsResponse = await fetch('/api/hotels');
-      const hotels = await hotelsResponse.json();
-      setHotels(hotels);
+      const hotelsResponse = await fetch(`${API_BASE_URL}/api/hotels`);
+      const hotelsData = await hotelsResponse.json();
+      // Koordinatları number'a çevir
+      const processedHotels = hotelsData.map(hotel => ({
+        ...hotel,
+        latitude: parseFloat(hotel.latitude),
+        longitude: parseFloat(hotel.longitude)
+      }));
+      setHotels(processedHotels);
 
-      const airQualityResponse = await fetch('/api/air-quality');
-      const airQualityPoints = await airQualityResponse.json();
-      setAirQualityPoints(airQualityPoints);
+      const airQualityResponse = await fetch(`${API_BASE_URL}/api/air-quality`);
+      const airQualityData = await airQualityResponse.json();
+      // Koordinatları number'a çevir
+      const processedAirQuality = airQualityData.map(point => ({
+        ...point,
+        latitude: parseFloat(point.latitude),
+        longitude: parseFloat(point.longitude)
+      }));
+      setAirQualityPoints(processedAirQuality);
     } catch (error) {
       console.error('Error loading data:', error);
       Alert.alert('Error loading data');
@@ -48,9 +66,17 @@ const PollutionMap = () => {
     }
 
     try {
-      const response = await fetch(`/api/best-hotel?lat=${selectedLocation.latitude}&lng=${selectedLocation.longitude}&radius=${radius}`);
-      const bestHotel = await response.json();
-      setBestHotel(bestHotel);
+      const response = await fetch(`${API_BASE_URL}/api/best-hotel?lat=${selectedLocation.latitude}&lng=${selectedLocation.longitude}&radius=${radius}`);
+      const hotelData = await response.json();
+      // Best hotel koordinatlarını number'a çevir
+      if (hotelData) {
+        const processedHotel = {
+          ...hotelData,
+          latitude: parseFloat(hotelData.latitude),
+          longitude: parseFloat(hotelData.longitude)
+        };
+        setBestHotel(processedHotel);
+      }
     } catch (error) {
       console.error('Error finding best hotel:', error);
       Alert.alert('Error finding best hotel');
@@ -65,58 +91,6 @@ const PollutionMap = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.sidebar}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Antalya</Text>
-          <Text style={styles.subtitle}>Hava Kalitesi ve Otel Haritası</Text>
-        </View>
-
-        <View style={styles.controlsSection}>
-          <View style={styles.dataControls}>
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => setHotels([])}>
-              <Text>🏨 Otelleri Göster</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => setAirQualityPoints([])}>
-              <Text>🌬️ Hava Kalitesi Verilerini Göster</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.searchRadius}>
-            <Text style={styles.label}>Arama Yarıçapı</Text>
-            <View style={styles.inputGroup}>
-              <TextInput
-                style={styles.input}
-                value={String(radius)}
-                onChangeText={setRadius}
-                keyboardType="numeric"
-              />
-              <Text style={styles.unit}>km</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.primaryButton} onPress={findBestHotel}>
-            <Text>En Uygun Oteli Bul</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.legend}>
-          <Text style={styles.legendTitle}>Hava Kalitesi Seviyeleri</Text>
-          <View style={styles.legendItems}>
-            <View style={styles.legendItem}>
-              <View style={[styles.colorBox, styles.good]} />
-              <Text>İyi (0-100)</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.colorBox, styles.moderate]} />
-              <Text>Orta (101-200)</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.colorBox, styles.bad]} />
-              <Text>Kötü (201+)</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
       <MapView
         style={styles.map}
         initialRegion={{
@@ -158,6 +132,61 @@ const PollutionMap = () => {
           />
         )}
       </MapView>
+
+      <ScrollView style={styles.menu}>
+        <View style={styles.header}>
+          <Ionicons name="cloudy-outline" size={80} color="#fff" style={styles.icon} />
+          <Text style={styles.title}>Kirlilik Haritası</Text>
+          <Text style={styles.description}>
+            Kirlilik seviyelerini harita üzerinde görüntüleyin ve bölgenizdeki çevresel durumu öğrenin.
+          </Text>
+        </View>
+
+        <View style={styles.controlsSection}>
+          <View style={styles.dataControls}>
+            <TouchableOpacity style={styles.secondaryButton} onPress={() => setHotels([])}>
+              <Text>🏨 Otelleri Göster</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryButton} onPress={() => setAirQualityPoints([])}>
+              <Text>🌬 Hava Kalitesi Verilerini Göster</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.searchRadius}>
+            <Text style={styles.label}>Arama Yarıçapı</Text>
+            <View style={styles.inputGroup}>
+              <TextInput
+                style={styles.input}
+                value={String(radius)}
+                onChangeText={(text) => setRadius(parseFloat(text) || 0)}
+                keyboardType="numeric"
+              />
+              <Text style={styles.unit}>km</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.primaryButton} onPress={findBestHotel}>
+            <Text>En Uygun Oteli Bul</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.legend}>
+          <Text style={styles.legendTitle}>Hava Kalitesi Seviyeleri</Text>
+          <View style={styles.legendItems}>
+            <View style={styles.legendItem}>
+              <View style={[styles.colorBox, styles.good]} />
+              <Text>İyi (0-100)</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.colorBox, styles.moderate]} />
+              <Text>Orta (101-200)</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.colorBox, styles.bad]} />
+              <Text>Kötü (201+)</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -165,131 +194,130 @@ const PollutionMap = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'row',
   },
-  sidebar: {
-    width: 320,
-    backgroundColor: 'white',
+  map: {
+    flex: 2,
+  },
+  menu: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 20,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    zIndex: 1000,
   },
   header: {
-    textAlign: 'center',
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  icon: {
+    marginBottom: 10,
   },
   title: {
-    color: '#2c3e50',
-    fontSize: 22,
-    fontWeight: '500',
-    marginBottom: 5,
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 10,
+    textAlign: "center",
   },
-  subtitle: {
-    color: '#7f8c8d',
-    fontSize: 14,
+  description: {
+    fontSize: 16,
+    color: "#fff",
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
   controlsSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 15,
+    width: "100%",
+    marginBottom: 20,
   },
   dataControls: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 10,
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
   },
   searchRadius: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
+    display: "flex",
+    flexDirection: "column",
+    marginBottom: 20,
   },
   label: {
-    color: '#2c3e50',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
+    marginBottom: 5,
   },
   inputGroup: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
   },
   input: {
     flex: 1,
     padding: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 6,
     fontSize: 16,
+    backgroundColor: "#fff",
+    color: "#000",
   },
   unit: {
-    color: '#7f8c8d',
+    color: "#fff",
     fontSize: 14,
+    marginLeft: 10,
   },
   primaryButton: {
-    backgroundColor: '#3498db',
-    color: 'white',
-    padding: 12,
-    borderRadius: 6,
-    alignItems: 'center',
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 20,
   },
   secondaryButton: {
-    backgroundColor: '#ecf0f1',
-    color: '#2c3e50',
-    padding: 12,
-    borderRadius: 6,
-    alignItems: 'center',
+    backgroundColor: "#ecf0f1",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    flex: 1,
+    marginHorizontal: 5,
   },
   legend: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     padding: 15,
     borderRadius: 8,
   },
   legendTitle: {
-    color: '#2c3e50',
+    color: "#2c3e50",
     fontSize: 14,
     marginBottom: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   legendItems: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
     gap: 8,
   },
   legendItem: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     fontSize: 14,
-    color: '#2c3e50',
+    color: "#2c3e50",
   },
   colorBox: {
     width: 20,
     height: 20,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
+    borderColor: "rgba(0,0,0,0.1)",
   },
   good: {
-    backgroundColor: '#90EE90',
+    backgroundColor: "#90EE90",
   },
   moderate: {
-    backgroundColor: '#FFB6C1',
+    backgroundColor: "#FFB6C1",
   },
   bad: {
-    backgroundColor: '#DDA0DD',
-  },
-  map: {
-    flex: 1,
+    backgroundColor: "#DDA0DD",
   },
 });
 
