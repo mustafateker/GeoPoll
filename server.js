@@ -18,6 +18,16 @@ const pool = new Pool({
     port: 5432,
 });
 
+// Veritabanı bağlantısını test et
+pool.connect((err, client, release) => {
+    if (err) {
+        console.error('Veritabanı bağlantı hatası:', err);
+        return;
+    }
+    console.log('PostgreSQL veritabanına başarıyla bağlandı');
+    release();
+});
+
 // Statik dosyaları serve et
 app.use(express.static('public'));
 app.use(express.json());
@@ -27,14 +37,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.js'));
 });
 
-
 // Tüm otelleri getir
 app.get('/api/hotels', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM hotels');
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
+        console.error('Otel verisi çekme hatası:', err);
         res.status(500).json({ error: 'Veritabanı hatası' });
     }
 });
@@ -45,7 +54,7 @@ app.get('/api/air-quality', async (req, res) => {
         const result = await pool.query('SELECT * FROM air_quality_points');
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
+        console.error('Hava kalitesi verisi çekme hatası:', err);
         res.status(500).json({ error: 'Veritabanı hatası' });
     }
 });
@@ -58,20 +67,20 @@ app.get('/api/best-hotel', async (req, res) => {
         // Önce verilen yarıçap içindeki otelleri bul
         const hotelsQuery = `
             SELECT 
-                id, name, latitude, longitude, address, rating, created_at,
+                id, name, latitude, longitude, rating,
                 (
                     6371 * acos(
-                        cos(radians($1)) * cos(radians(latitude)) *
-                        cos(radians(longitude) - radians($2)) +
-                        sin(radians($1)) * sin(radians(latitude))
+                        cos(radians($1)) * cos(radians(latitude::float)) *
+                        cos(radians(longitude::float) - radians($2)) +
+                        sin(radians($1)) * sin(radians(latitude::float))
                     )
                 ) as distance
             FROM hotels
-            WHERE (
+            WHERE (    
                 6371 * acos(
-                    cos(radians($1)) * cos(radians(latitude)) *
-                    cos(radians(longitude) - radians($2)) +
-                    sin(radians($1)) * sin(radians(latitude))
+                    cos(radians($1)) * cos(radians(latitude::float)) *
+                    cos(radians(longitude::float) - radians($2)) +
+                    sin(radians($1)) * sin(radians(latitude::float))
                 )
             ) <= $3
             ORDER BY distance ASC;
@@ -86,20 +95,20 @@ app.get('/api/best-hotel', async (req, res) => {
         // Her otel için çevresindeki hava kalitesi noktalarını kontrol et
         const airQualityQuery = `
             SELECT 
-                id, latitude, longitude, pollution_level, color, measurement_time,
+                id, latitude, longitude, pollution_level,
                 (
                     6371 * acos(
-                        cos(radians($1)) * cos(radians(latitude)) *
-                        cos(radians(longitude) - radians($2)) +
-                        sin(radians($1)) * sin(radians(latitude))
+                        cos(radians($1)) * cos(radians(latitude::float)) *
+                        cos(radians(longitude::float) - radians($2)) +
+                        sin(radians($1)) * sin(radians(latitude::float))
                     )
                 ) as distance
             FROM air_quality_points
             WHERE (
                 6371 * acos(
-                    cos(radians($1)) * cos(radians(latitude)) *
-                    cos(radians(longitude) - radians($2)) +
-                    sin(radians($1)) * sin(radians(latitude))
+                    cos(radians($1)) * cos(radians(latitude::float)) *
+                    cos(radians(longitude::float) - radians($2)) +
+                    sin(radians($1)) * sin(radians(latitude::float))
                 )
             ) <= 2
             ORDER BY distance ASC;
@@ -132,7 +141,7 @@ app.get('/api/best-hotel', async (req, res) => {
 
         res.json(bestHotel);
     } catch (err) {
-        console.error(err);
+        console.error('En iyi otel arama hatası:', err);
         res.status(500).json({ error: 'Veritabanı hatası' });
     }
 });
@@ -149,6 +158,21 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-app.listen(port, () => {
-    console.log(`Sunucu http://localhost:${port} adresinde çalışıyor`);
+// Sunucuyu başlat
+let server;
+try {
+    server = app.listen(port, () => {
+        console.log(`Sunucu http://localhost:${port} adresinde çalışıyor`);
+    });
+} catch (error) {
+    console.error('Sunucu başlatma hatası:', error);
+}
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.info('SIGTERM sinyali alındı. Sunucu kapatılıyor...');
+    server.close(() => {
+        console.log('Sunucu kapatıldı');
+        pool.end();
+    });
 }); 

@@ -113,7 +113,7 @@ async function fetchHotels() {
                             default:
                                 stars = Math.floor(Math.random() * 3) + 3; // 3-5 arası rastgele
                         }
-                    }
+                    }s
 
                     // Adres bilgisini birleştir
                     let address = element.tags['addr:street'];

@@ -72,7 +72,7 @@ const ChatbotScreen = () => {
         const weatherResponse = `🌤 Antalya, ÖZkaymak Falez Hotel Hava Durumu:\nSıcaklık: ${weatherData.temperature}°C\nDurum: ${weatherData.description}\nNem: %${weatherData.humidity}\nRüzgar: ${weatherData.windSpeed} m/s`;
         addMessage(weatherResponse, true, weatherData);
       }
-      // Konum kontrolü
+      // Konusm kontrolü
       else if (lowerMessage.includes('konum') || lowerMessage.includes('nerede') || lowerMessage.includes('koordinat')) {
         const { latitude, longitude, altitude } = location.coords;
         addMessage(`📍 ÖZkaymak Falez Hotel Konumu:\nEnlem: ${latitude}\nBoylam: ${longitude}\nRakım: ${altitude || 'Bilinmiyor'} metre\n\nOtelimiz Antalya'nın merkezinde, Konyaaltı sahilinde bulunmaktadır.`, true);
